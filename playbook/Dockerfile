@@ -1,6 +1,7 @@
-FROM ubuntu
+FROM centos
 
-LABEL "developer"="keqpup232" "product"="ubuntu + python"
+RUN cd /etc/yum.repos.d/
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
-RUN /bin/bash -c 'apt-get update -y; \
-                  apt-get install python3 -y'
+CMD /bin/bash

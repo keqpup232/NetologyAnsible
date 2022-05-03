@@ -1,53 +1,37 @@
-# Самоконтроль выполненения задания
+### Preparation for launch playbook
+1) You need create docker container with Dockerfile
+    ```bash
+    $ docker build -t keqpup232/centos:repo .
+    ```
+2) Then run docker container centos7 
+    ```bash
+   $ docker run -dt --name centos7 keqpup232/centos:repo  
+   ```
+3) And play ansible site.yml with inventory prod.yml
+    ```bash
+   $ ansible-playbook --diff -i inventory/prod.yml site.yml
+   ```
+4) If you need change distrib version, set that variables in group_vars
+    ```yaml
+    vector_version: "0.21.1"
+    clickhouse_version: "22.3.3.44"
+    ```
+### Ansible actions in docker centos7
+1) First tasks "Install Clickhouse"
+   1) Download clickhouse_packages:
+      - clickhouse-client
+      - clickhouse-server
+      - clickhouse-common-static
+   2) Install clickhouse packages
+   3) Start clickhouse service
+   4) Create database
+2) Second tasks "Install Vector"
+   1) Download vector distrib
+   2) Create directory for Vector
+   3) Install unzip and tar unarchive
+   4) Extract vector
+   5) Create a symbolic link
+   6) Handlers Check is all done
 
-1. Где расположен файл с `some_fact` из второго пункта задания?
 
-    #### /group_vars/all/examp.yml
-
-2. Какая команда нужна для запуска вашего `playbook` на окружении `test.yml`?
-
-    #### ansible-playbook ***.yml -i inventory/test.yml
-
-3. Какой командой можно зашифровать файл?
-
-    #### ansible-vault encrypt /
-
-4. Какой командой можно расшифровать файл?
-
-    #### ansible-vault decrypt /
-
-5. Можно ли посмотреть содержимое зашифрованного файла без команды расшифровки файла? Если можно, то как?
-
-    #### ansible-vault view /
-
-6. Как выглядит команда запуска `playbook`, если переменные зашифрованы?
-
-    #### ansible-playbook ***.yml --ask-vault-pass
-
-7. Как называется модуль подключения к host на windows?
-
-    #### winrm
-
-8. Приведите полный текст команды для поиска информации в документации ansible для модуля подключений ssh
-
-    #### ansible-doc -t connection ssh
-
-9. Какой параметр из модуля подключения `ssh` необходим для того, чтобы определить пользователя, под которым необходимо совершать подключение?
-    
-    #### - remote_user
-        User name with which to login to the remote server, normally set by the remote_user keyword.
-        If no user is supplied, Ansible will let the SSH client binary choose the user as it normally.
-        [Default: (null)]
-        set_via:
-          cli:
-          - name: user
-            option: --user
-          env:
-          - name: ANSIBLE_REMOTE_USER
-          ini:
-          - key: remote_user
-            section: defaults
-          vars:
-          - name: ansible_user
-          - name: ansible_ssh_user
 
