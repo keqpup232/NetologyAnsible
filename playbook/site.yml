@@ -33,7 +33,7 @@
       changed_when: create_db.rc == 0
 
 - name: Install Vector
-  hosts: clickhouse
+  hosts: vector
   handlers:
     - name: Check succses install vector
       ansible.builtin.shell: "vector --version"
@@ -59,6 +59,7 @@
           - unzip
           - tar
         state: present
+      tags: vector
     - name: Extract vector in directory
       ansible.builtin.unarchive:
         src: "/vector-{{ vector_version }}.tar.gz"
@@ -73,6 +74,7 @@
         owner: root
         group: root
         state: link
+      tags: vector
       notify:
         - Check succses install vector
         - debug details

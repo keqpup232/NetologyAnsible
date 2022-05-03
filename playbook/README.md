@@ -11,11 +11,15 @@
     ```bash
    $ ansible-playbook --diff -i inventory/prod.yml site.yml
    ```
-4) If you need change distrib version, set that variables in group_vars
-    ```yaml
-    vector_version: "0.21.1"
-    clickhouse_version: "22.3.3.44"
-    ```
+   1) If you need change distrib version, set that variables in group_vars
+       ```yaml
+       vector_version: "0.21.1"
+       clickhouse_version: "22.3.3.44"
+       ```
+   2) Use tag vector if you need only install vector 
+       ```bash
+       $ ansible-playbook --diff --tags vector -i inventory/prod.yml site.yml
+       ```
 ### Ansible actions in docker centos7
 1) First tasks "Install Clickhouse"
    1) Download clickhouse_packages:

@@ -3,4 +3,7 @@ clickhouse:
   hosts:
     centos7:
       ansible_connection: docker
-
+vector:
+  hosts:
+    centos7:
+      ansible_connection: docker
