@@ -1,0 +1,3 @@
+---
+domain: "helloworld.com"
+ansible_user: "centos"
