@@ -14,7 +14,7 @@ resource "local_file" "vector" {
     table = "access_logs"
     skip_unknown_fields = true
     DOC
-  filename = "../playbook/group_vars/vector/vector.toml"
+  filename = "../playbook/roles/vector-role/templates/vector.toml"
 
   depends_on = [
     local_file.inventory

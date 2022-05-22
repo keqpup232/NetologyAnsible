@@ -1,3 +1,2 @@
 ---
 vector_version: "0.21.1"
-vector_home: "~/.vector-{{ vector_version }}"

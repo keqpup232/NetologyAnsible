@@ -5,48 +5,14 @@
   become_user: root
   remote_user: centos
   tags: clickhouse
-  handlers:
-    - name: restart clickhouse service
-      ansible.builtin.command: "/etc/init.d/clickhouse-server restart"
-  tasks:
-    - block:
-        - name: Get clickhouse distrib
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"
-            dest: "./{{ item }}-{{ clickhouse_version }}.rpm"
-          with_items: "{{ clickhouse_packages }}"
-      rescue:
-        - name: Get clickhouse distrib
-          ansible.builtin.get_url:
-            url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
-            dest: "./clickhouse-common-static-{{ clickhouse_version }}.rpm"
-
-    - name: Install clickhouse packages
-      ansible.builtin.yum:
-        name:
-          - clickhouse-common-static-{{ clickhouse_version }}.rpm
-          - clickhouse-client-{{ clickhouse_version }}.rpm
-          - clickhouse-server-{{ clickhouse_version }}.rpm
-        disable_gpg_check: yes
-      notify: restart clickhouse service
-
-    - name: Configurate
-      template:
-        src: group_vars/clickhouse/config.xml
-        dest: /etc/clickhouse-server/config.xml
-        owner: clickhouse
-        group: clickhouse
-        mode: 0640
-
-    - name: Flush handlers
-      meta: flush_handlers
-
+  roles:
+    - clickhouse
+  post_tasks:
     - name: Create database
       ansible.builtin.command: "clickhouse-client -q 'CREATE DATABASE logs;'"
       register: create_db
       failed_when: create_db.rc != 0 and create_db.rc !=82
       changed_when: create_db.rc == 0
-
     - name: Create table
       ansible.builtin.command: "clickhouse-client -q 'CREATE TABLE IF NOT EXISTS  logs.access_logs (message String) ENGINE = MergeTree() ORDER BY tuple()'"
 
@@ -56,81 +22,11 @@
   become_user: root
   remote_user: centos
   tags: vector
-  handlers:
-    - name: Check succses install vector
-      ansible.builtin.shell: "vector --version"
-      register: out
-
-    - name: debug details
-      debug:
-        msg: "{{ out.stdout }}"
-
-  tasks:
-    - name: Get vector distrib
-      ansible.builtin.get_url:
-        url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-x86_64-unknown-linux-gnu.tar.gz"
-        dest: "/vector-{{ vector_version }}.tar.gz"
-
-    - name: Create directory for Vector
-      file:
-        state: directory
-        path: "{{ vector_home }}"
-
-    - name: extractor presents
-      ansible.builtin.yum:
-        name:
-          - unzip
-          - tar
-        state: present
-
-    - name: Extract vector in directory
-      ansible.builtin.unarchive:
-        src: "/vector-{{ vector_version }}.tar.gz"
-        dest: "{{ vector_home }}"
-        extra_opts: [ --strip-components=2 ]
-        remote_src: yes
-
-    - name: Create a symbolic link
-      ansible.builtin.file:
-        src: "{{ vector_home }}/bin/vector"
-        dest: "/usr/bin/vector"
-        owner: root
-        group: root
-        state: link
-      notify:
-        - Check succses install vector
-        - debug details
-
-    - name: Copy config vector
-      template:
-        src: group_vars/vector/vector.toml
-        dest: /home/centos/vector.toml
-        owner: root
-        group: root
-        mode: 0640
-
-    - name: Start toml config file
-      ansible.builtin.shell: vector --config /home/centos/vector.toml &
-
+  roles:
+    - vector-role
+  post_tasks:
     - name: Send test data syslog in clickhouse
       ansible.builtin.shell: logger -p local0.info --server 127.0.0.1 --tcp --port 514 "My Test Message"
-
-- name: Install NGINX in lighthouse node
-  hosts: lighthouse
-  become: true
-  become_user: root
-  remote_user: centos
-  tags: nginx
-  tasks:
-  - name: Add epel-release repo
-    yum:
-      name: epel-release
-      state: present
-
-  - name: Install nginx
-    yum:
-      name: nginx
-      state: present
 
 - name: Install Lighthouse
   hosts: lighthouse
@@ -138,32 +34,5 @@
   become_user: root
   remote_user: centos
   tags: lighthouse
-  handlers:
-    - name: restart nginx
-      service:
-        name: nginx
-        state: restarted
-
-  tasks:
-    - name: git install
-      ansible.builtin.yum:
-        name:
-          - git
-
-    - name: Recursively remove directory
-      ansible.builtin.file:
-        path: /usr/share/nginx/html
-        state: absent
-
-    - name: Create a directory if it does not exist
-      ansible.builtin.file:
-        path: /usr/share/nginx/html
-        state: directory
-        mode: '0755'
-
-    - name: Git checkout
-      ansible.builtin.git:
-        repo: 'https://github.com/VKCOM/lighthouse.git'
-        dest: /usr/share/nginx/html
-      notify:
-        - restart nginx
+  roles:
+    - lighthouse-role
